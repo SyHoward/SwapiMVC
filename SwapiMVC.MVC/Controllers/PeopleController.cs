@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using SwapiMVC.Models;
 
 namespace SwapiMVC.MVC.Controllers;
 
@@ -9,8 +11,24 @@ public class PeopleController : Controller
     {
         _httpClient = httpClientFactory.CreateClient("swapi");
     }
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string page)
     {
-        return View();
+        string route = $"people?page={page ?? "1"}";
+        HttpResponseMessage response = await _httpClient.GetAsync(route);
+
+        var responseString = await response.Content.ReadAsStringAsync();
+        var people = JsonSerializer.Deserialize<ResultsViewModel<PeopleViewModel>>(responseString);
+
+        return View(people);
+    }
+
+    public async Task<IActionResult> Person([FromRoute] string? id)
+    {
+        var response = await _httpClient.GetAsync($"people/{id}");
+        if (id is null || response.IsSuccessStatusCode == false)
+            return RedirectToAction(nameof(Index));
+
+        var person = await response.Content.ReadFromJsonAsync<PeopleViewModel>();
+        return View(person);
     }
 }

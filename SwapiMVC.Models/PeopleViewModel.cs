@@ -19,4 +19,14 @@ public class PeopleViewModel
     [JsonPropertyName("url")]
     public string? Url {get; set;}
 
+    [JsonPropertyName("")]
+    public string? Id
+    {
+        get
+        {
+            return Url?
+                .Split("/", StringSplitOptions.RemoveEmptyEntries)
+                .LastOrDefault();
+        }
+    }
 }
